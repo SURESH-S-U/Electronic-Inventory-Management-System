@@ -77,4 +77,33 @@ app.get('/api/transactions', authenticate, async (req, res) => {
     res.json(await Transaction.find({ ownerId: req.user.id }).sort({ date: -1 }));
 });
 
+
+
+// --- DELETE ROUTES ---
+
+app.delete('/api/products/:id', authenticate, async (req, res) => {
+    try {
+        await Product.findOneAndDelete({ _id: req.params.id, ownerId: req.user.id });
+        res.json({ message: "Product Deleted" });
+    } catch (err) { res.status(500).send("Error deleting product"); }
+});
+
+app.delete('/api/categories/:id', authenticate, async (req, res) => {
+    try {
+        await Category.findOneAndDelete({ _id: req.params.id, ownerId: req.user.id });
+        res.json({ message: "Category Deleted" });
+    } catch (err) { res.status(500).send("Error deleting category"); }
+});
+
+app.delete('/api/suppliers/:id', authenticate, async (req, res) => {
+    try {
+        await Supplier.findOneAndDelete({ _id: req.params.id, ownerId: req.user.id });
+        res.json({ message: "Supplier Deleted" });
+    } catch (err) { res.status(500).send("Error deleting supplier"); }
+});
+
+
+
+// Run server
+
 app.listen(5000, () => console.log("Multi-tenant Server Running"));
