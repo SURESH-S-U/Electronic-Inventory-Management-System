@@ -5,67 +5,70 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const { User, Product, Transaction } = require('./models/Models');
+const { User, Product, Transaction, Category, Supplier } = require('./models/Models');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.log(err));
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("Atlas Connected"));
 
-// --- AUTH ROUTES ---
+// Auth Middleware
+const authenticate = (req, res, next) => {
+    const token = req.headers['authorization'];
+    if (!token) return res.status(401).send("Access Denied");
+    try {
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
+        next();
+    } catch (err) { res.status(400).send("Invalid Token"); }
+};
+
+// --- AUTH ---
 app.post('/api/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const user = new User({ username: req.body.username, password: hashedPassword, role: req.body.role });
-    await user.save();
-    res.json({ message: "User Created" });
+    await new User({ username: req.body.username, password: hashedPassword }).save();
+    res.json("Success");
 });
 
 app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ username: req.body.username });
-    if (!user || !await bcrypt.compare(req.body.password, user.password)) {
-        return res.status(400).json({ message: "Invalid credentials" });
-    }
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
-    res.json({ token, role: user.role, username: user.username });
+    if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).send("Error");
+    const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET);
+    res.json({ token, username: user.username });
 });
 
-// --- PRODUCT ROUTES ---
-app.get('/api/products', async (req, res) => {
-    const products = await Product.find();
-    res.json(products);
+// --- BULK ROUTES ---
+app.post('/api/bulk/:type', authenticate, async (req, res) => {
+    const { type } = req.params;
+    const data = req.body.map(item => ({ ...item, ownerId: req.user.id }));
+    try {
+        if (type === 'products') await Product.insertMany(data);
+        if (type === 'categories') await Category.insertMany(data);
+        if (type === 'suppliers') await Supplier.insertMany(data);
+        res.json("Bulk Upload Success");
+    } catch (err) { res.status(400).send("Bulk Upload Failed. Check data."); }
 });
 
-app.post('/api/products', async (req, res) => {
-    const newProduct = new Product(req.body);
-    await newProduct.save();
-    res.json(newProduct);
+// --- SINGLE ROUTES ---
+app.get('/api/products', authenticate, async (req, res) => res.json(await Product.find({ ownerId: req.user.id })));
+app.post('/api/products', authenticate, async (req, res) => res.json(await new Product({ ...req.body, ownerId: req.user.id }).save()));
+
+app.get('/api/categories', authenticate, async (req, res) => res.json(await Category.find({ ownerId: req.user.id })));
+app.post('/api/categories', authenticate, async (req, res) => res.json(await new Category({ ...req.body, ownerId: req.user.id }).save()));
+
+app.get('/api/suppliers', authenticate, async (req, res) => res.json(await Supplier.find({ ownerId: req.user.id })));
+app.post('/api/suppliers', authenticate, async (req, res) => res.json(await new Supplier({ ...req.body, ownerId: req.user.id }).save()));
+
+// --- STOCK UPDATE ---
+app.post('/api/stock-update', authenticate, async (req, res) => {
+    const { productId, quantity, type } = req.body;
+    const p = await Product.findOne({ _id: productId, ownerId: req.user.id });
+    p.quantity += (type === 'IN' ? quantity : -quantity);
+    await p.save();
+    await new Transaction({ productName: p.name, type, quantity, user: req.user.username, ownerId: req.user.id }).save();
+    res.json("Updated");
 });
 
-// --- STOCK IN/OUT ROUTE ---
-app.post('/api/stock-update', async (req, res) => {
-    const { productId, quantity, type, user } = req.body;
-    const product = await Product.findById(productId);
-    
-    if (type === 'OUT' && product.quantity < quantity) {
-        return res.status(400).json({ message: "Insufficient stock" });
-    }
+app.get('/api/transactions', authenticate, async (req, res) => res.json(await Transaction.find({ ownerId: req.user.id }).sort({ date: -1 })));
 
-    product.quantity += (type === 'IN' ? quantity : -quantity);
-    await product.save();
-
-    const transaction = new Transaction({ productId, productName: product.name, type, quantity, user });
-    await transaction.save();
-    
-    res.json({ message: "Stock Updated" });
-});
-
-// --- REPORTS ROUTE ---
-app.get('/api/transactions', async (req, res) => {
-    const logs = await Transaction.find().sort({ date: -1 });
-    res.json(logs);
-});
-
-app.listen(5000, () => console.log("Server running on port 5000"));
+app.listen(5000, () => console.log("Server Running"));
