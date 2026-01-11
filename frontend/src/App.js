@@ -15,8 +15,8 @@ const App = () => {
         <Router>
             <div className="flex min-h-screen bg-gray-100">
                 {user && (
-                    <nav className="w-64 bg-slate-900 text-white p-6 flex flex-col space-y-4 font-sans shadow-xl">
-                        <h1 className="text-xl font-bold text-blue-400 mb-6 uppercase tracking-widest border-b border-gray-700 pb-2">InvMaster Pro</h1>
+                    <nav className="w-64 bg-blue-900 text-white p-6 flex flex-col space-y-4 font-sans shadow-xl">
+                        <h1 className="text-xl font-bold text-blue-400 mb-6 uppercase tracking-widest border-b border-gray-700 pb-2">E-Inventory</h1>
                         <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/"><LayoutDashboard size={18}/> Dashboard</Link>
                         <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/products"><Box size={18}/> Products</Link>
                         <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/categories"><Tags size={18}/> Categories</Link>
@@ -46,9 +46,14 @@ const App = () => {
     );
 };
 
-// --- DASHBOARD (UPDATED WITH SUPPLIER COUNT) ---
+
+
+
+// --- ENHANCED DASHBOARD WITH CLICKABLE LOW STOCK ---
+
 const Dashboard = ({ getConfig }) => {
     const [data, setData] = useState({ p: [], c: [], s: [], t: [] });
+    const [showLowStockModal, setShowLowStockModal] = useState(false); // State to control Modal
 
     useEffect(() => { 
         const fetchAll = async () => {
@@ -63,9 +68,9 @@ const Dashboard = ({ getConfig }) => {
         fetchAll();
     }, []);
 
-    const lowStockCount = data.p.filter(x => x.quantity < 5).length;
+    const lowStockItems = data.p.filter(x => x.quantity < 5);
+    const lowStockCount = lowStockItems.length;
     
-    // Logic to show ALL categories in Chart
     const barData = data.c.map(cat => {
         const totalStock = data.p
             .filter(prod => prod.category === cat.name)
@@ -80,18 +85,28 @@ const Dashboard = ({ getConfig }) => {
     const COLORS = ['#10B981', '#EF4444'];
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-800 border-b pb-2">Business Overview</h2>
+        <div className="space-y-6 relative">
+            <h2 className="text-3xl font-bold text-blue-600 border-b pb-2">Business Overview</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 shadow-md rounded-xl border-l-4 border-blue-500">
+                <div className="bg-white p-6 shadow-md rounded-xl border-l-4 border-blue-500 hover:scale-105 transition cursor-default">
                     <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Total Products</h3>
                     <p className="text-3xl font-black">{data.p.length}</p>
                 </div>
-                <div className="bg-white p-6 shadow-md rounded-xl border-l-4 border-red-500">
-                    <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Low Stock</h3>
+
+                {/* CLICKABLE LOW STOCK CARD */}
+                <div 
+                    onClick={() => setShowLowStockModal(true)}
+                    className="bg-white p-6 shadow-md rounded-xl border-l-4 border-red-500 hover:scale-105 transition cursor-pointer group"
+                >
+                    <div className="flex justify-between items-start">
+                        <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-widest group-hover:text-red-500">Low Stock</h3>
+                        <AlertTriangle size={14} className="text-red-500 animate-pulse" />
+                    </div>
                     <p className="text-3xl font-black text-red-500">{lowStockCount}</p>
+                    <p className="text-[10px] text-red-400 font-bold mt-1">Click to view items →</p>
                 </div>
+
                 <div className="bg-white p-6 shadow-md rounded-xl border-l-4 border-purple-500">
                     <h3 className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Categories</h3>
                     <p className="text-3xl font-black text-purple-600">{data.c.length}</p>
@@ -102,11 +117,10 @@ const Dashboard = ({ getConfig }) => {
                 </div>
             </div>
 
+            {/* CHARTS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 shadow-md rounded-xl h-80">
-                    <h3 className="font-bold mb-4 flex items-center gap-2 text-slate-700 italic border-b pb-2 tracking-tight underline underline-offset-4 decoration-blue-500">
-                        📦 Current Category Levels
-                    </h3>
+                    <h3 className="font-bold mb-4 text-slate-700 italic border-b pb-2">📦 Current Category Levels</h3>
                     <ResponsiveContainer width="100%" height="90%">
                         <BarChart data={barData}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -118,9 +132,7 @@ const Dashboard = ({ getConfig }) => {
                     </ResponsiveContainer>
                 </div>
                 <div className="bg-white p-6 shadow-md rounded-xl h-80">
-                    <h3 className="font-bold mb-4 flex items-center gap-2 text-slate-700 italic border-b pb-2 tracking-tight underline underline-offset-4 decoration-red-500">
-                        🏥 Stock Health Analysis
-                    </h3>
+                    <h3 className="font-bold mb-4 text-slate-700 italic border-b pb-2 text-right">🏥 Stock Health Analysis</h3>
                     <ResponsiveContainer width="100%" height="90%">
                         <PieChart>
                             <Pie data={pieData} innerRadius={60} outerRadius={80} dataKey="value" stroke="none" paddingAngle={5}>
@@ -132,9 +144,59 @@ const Dashboard = ({ getConfig }) => {
                     </ResponsiveContainer>
                 </div>
             </div>
+
+            {/* --- LOW STOCK MODAL POPUP --- */}
+            {showLowStockModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="bg-red-600 p-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold flex items-center gap-2 text-lg">
+                                <AlertTriangle size={20}/> Critical Stock Alert
+                            </h3>
+                            <button 
+                                onClick={() => setShowLowStockModal(false)}
+                                className="bg-white/20 hover:bg-white/40 px-3 py-1 rounded-lg text-sm transition font-bold"
+                            >
+                                Close ✕
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[60vh] overflow-y-auto">
+                            {lowStockCount > 0 ? (
+                                <table className="w-full text-left">
+                                    <thead className="text-gray-400 text-[10px] uppercase font-black border-b">
+                                        <tr><th className="pb-2">Product</th><th className="pb-2">SKU</th><th className="pb-2 text-right">Stock</th></tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {lowStockItems.map(item => (
+                                            <tr key={item._id} className="hover:bg-red-50 transition">
+                                                <td className="py-3 font-bold text-slate-700">{item.name}</td>
+                                                <td className="py-3 text-gray-400 font-mono text-xs">{item.sku}</td>
+                                                <td className="py-3 text-right font-black text-red-600">{item.quantity}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <p className="text-center py-10 text-gray-500 font-medium italic">No low stock items found. Your inventory is healthy!</p>
+                            )}
+                        </div>
+                        <div className="p-4 bg-gray-50 border-t text-center">
+                            <Link 
+                                to="/stock" 
+                                onClick={() => setShowLowStockModal(false)}
+                                className="text-blue-600 font-bold hover:underline text-sm"
+                            >
+                                Go to Stock Movement to restock these items →
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
+
 
 // --- PRODUCT MANAGER ---
 const ProductManager = ({ getConfig }) => {
@@ -177,7 +239,7 @@ const ProductManager = ({ getConfig }) => {
 
     return (
         <div className="space-y-6">
-            <h2 className="font-bold text-2xl text-slate-800">Product Management</h2>
+            <h2 className="font-bold text-2xl text-blue-600">Product Management</h2>
             <form onSubmit={save} className="bg-white p-6 rounded-xl shadow border-t-4 border-blue-600 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input className="border p-2 rounded" placeholder="Name" value={f.name} onChange={e => setF({...f, name: e.target.value})} required />
                 <input className="border p-2 rounded" placeholder="SKU" value={f.sku} onChange={e => setF({...f, sku: e.target.value})} required />
@@ -197,8 +259,9 @@ const ProductManager = ({ getConfig }) => {
 
             <div className="bg-white shadow rounded-xl overflow-hidden">
                 <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-                    <span className="font-bold text-slate-500 text-sm">Inventory List</span>
-                    <input className="border p-2 rounded text-sm w-48 shadow-inner" placeholder="Search..." onChange={e => setSearchTerm(e.target.value)} />
+                    <span className="font-bold text-slate-800 text-[25  px]">Inventory List</span>
+                    <input className="border border-blue-400 p-2 rounded text-mm w-48 shadow-inner 
+             focus:outline-none focus:border-blue-1000 focus:bg-gray-400" placeholder="Search product..." onChange={e => setSearchTerm(e.target.value)} />
                 </div>
                 <table className="w-full text-left">
                     <thead className="bg-slate-800 text-white text-[10px] uppercase font-black">
@@ -223,6 +286,9 @@ const ProductManager = ({ getConfig }) => {
     );
 };
 
+
+
+
 // --- CATEGORY MANAGER ---
 const CategoryManager = ({ getConfig }) => {
     const [cats, setCats] = useState([]);
@@ -233,8 +299,8 @@ const CategoryManager = ({ getConfig }) => {
     const del = async (id) => { if(window.confirm("Delete category?")) { await axios.delete(`${API_URL}/categories/${id}`, getConfig()); load(); } };
 
     return (
-        <div className="max-w-xl bg-white p-8 shadow rounded-xl border-t-4 border-slate-700">
-            <h2 className="font-bold text-xl mb-4 text-slate-800 border-b pb-2 tracking-tight">Manage Categories</h2>
+        <div className="max-w-xl bg-white p-8 shadow rounded-xl border-t-4 border-blue-700">
+            <h2 className="font-bold text-xl mb-4 text-blue-600 border-b pb-2 tracking-tight">Manage Categories</h2>
             <div className="flex gap-2 mb-6">
                 <input className="border p-2 flex-1 rounded shadow-inner" value={n} placeholder="E.g. Audio, Mobiles" onChange={e => setN(e.target.value)} />
                 <button onClick={add} className="bg-blue-600 text-white px-6 rounded font-bold hover:bg-blue-700 shadow transition">Add</button>
@@ -251,6 +317,8 @@ const CategoryManager = ({ getConfig }) => {
     );
 };
 
+
+
 // --- SUPPLIER MANAGER ---
 const SupplierManager = ({ getConfig }) => {
     const [s, setS] = useState([]);
@@ -261,12 +329,12 @@ const SupplierManager = ({ getConfig }) => {
     const del = async (id) => { if(window.confirm("Remove supplier?")) { await axios.delete(`${API_URL}/suppliers/${id}`, getConfig()); load(); } };
 
     return (
-        <div className="bg-white p-8 shadow rounded-xl max-w-2xl border-t-8 border-slate-800">
-            <h2 className="font-bold text-xl mb-6 text-slate-800 border-b pb-2 tracking-tighter">Supplier Directory</h2>
+        <div className="bg-white p-8 shadow rounded-xl max-w-2xl border-t-8 border-blue-800">
+            <h2 className="font-bold text-xl mb-6 text-blue-600 border-b pb-2 tracking-tighter">Supplier Directory</h2>
             <div className="grid grid-cols-2 gap-4 mb-8 bg-slate-50 p-4 rounded-lg border">
                 <input className="border p-2 rounded" placeholder="Vendor Name" value={f.name} onChange={e => setF({...f, name: e.target.value})} />
                 <input className="border p-2 rounded" placeholder="Contact Details" value={f.contact} onChange={e => setF({...f, contact: e.target.value})} />
-                <button onClick={add} className="bg-slate-800 text-white p-2 rounded font-bold hover:bg-black col-span-2 shadow-md transition">Register New Supplier</button>
+                <button onClick={add} className="bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue col-span-2 shadow-md transition">Register New Supplier</button>
             </div>
             <table className="w-full text-left">
                 <thead className="border-b uppercase text-[10px] text-gray-400 font-black tracking-widest">
@@ -311,6 +379,8 @@ const Login = ({ setUser }) => {
     );
 };
 
+
+
 const Register = () => {
     const [f, setF] = useState({ username: '', password: '' });
     const reg = async (e) => {
@@ -331,6 +401,10 @@ const Register = () => {
     );
 };
 
+
+
+// Stock Movement
+
 const StockMovement = ({ getConfig }) => {
     const [p, setP] = useState([]);
     const [m, setM] = useState({ productId: '', quantity: 0, type: 'IN' });
@@ -341,8 +415,8 @@ const StockMovement = ({ getConfig }) => {
         alert("Stock Recorded!"); window.location.reload(); 
     };
     return (
-        <div className="bg-white p-8 shadow-xl rounded-2xl max-w-md mx-auto border-t-8 border-slate-800">
-            <h2 className="font-bold text-2xl mb-6 text-center text-slate-800">Update Stock</h2>
+        <div className="bg-white p-8 shadow-xl rounded-2xl max-w-md mx-auto border-t-8 border-blue-800">
+            <h2 className="font-bold text-2xl mb-6 text-center text-blue-600">Update Stock</h2>
             <div className="space-y-4">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Select Item</label>
                 <select className="border p-3 w-full rounded-lg bg-slate-50 shadow-inner" onChange={e => setM({...m, productId: e.target.value})}>
@@ -356,11 +430,14 @@ const StockMovement = ({ getConfig }) => {
                 </div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Quantity</label>
                 <input type="number" placeholder="Enter Amount" className="border p-3 w-full rounded-lg shadow-inner" onChange={e => setM({...m, quantity: parseInt(e.target.value)})} />
-                <button onClick={update} className="bg-slate-900 text-white w-full p-4 rounded-xl font-black text-lg shadow-lg hover:bg-black transition mt-4">RECORD TRANSACTION</button>
+                <button onClick={update} className="bg-blue-600 text-white w-full p-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue transition mt-4">RECORD TRANSACTION</button>
             </div>
         </div>
     );
 };
+
+
+// Reports page
 
 const Reports = ({ getConfig }) => {
     const [l, setL] = useState([]);
@@ -377,8 +454,8 @@ const Reports = ({ getConfig }) => {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-800">Operational Audit Logs</h2>
-                <button onClick={downloadCSV} className="bg-slate-800 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-black shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-600">Operational Audit Logs</h2>
+                <button onClick={downloadCSV} className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-blue shadow-lg">
                     📥 Download Report (CSV)
                 </button>
             </div>
