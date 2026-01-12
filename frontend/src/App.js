@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Box, ArrowUpDown, FileText, LogOut, Tags, Truck, Image as ImageIcon, AlertTriangle, Activity, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Box, ArrowUpDown, FileText, LogOut, Tags, Truck, Image as ImageIcon, Plus, AlertTriangle, Activity, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const API_URL = 'http://localhost:5000/api';
@@ -415,6 +415,8 @@ const ProductManager = ({ getConfig }) => {
 
 
 
+
+
 // --- CATEGORY MANAGER ---
 const CategoryManager = ({ getConfig }) => {
     const [cats, setCats] = useState([]);
@@ -425,23 +427,53 @@ const CategoryManager = ({ getConfig }) => {
     const del = async (id) => { if(window.confirm("Delete category?")) { await axios.delete(`${API_URL}/categories/${id}`, getConfig()); load(); } };
 
     return (
-        <div className="max-w-xl bg-white p-8 shadow rounded-xl border-t-4 border-blue-700">
-            <h2 className="font-bold text-xl mb-4 text-blue-600 border-b pb-2 tracking-tight">Manage Categories</h2>
-            <div className="flex gap-2 mb-6">
-                <input className="border p-2 flex-1 rounded shadow-inner" value={n} placeholder="E.g. Audio, Mobiles" onChange={e => setN(e.target.value)} />
-                <button onClick={add} className="bg-blue-600 text-white px-6 rounded font-bold hover:bg-blue-700 shadow transition">Add</button>
+        <div className="space-y-6">
+            <div className="relative h-48 rounded-2xl overflow-hidden shadow-lg mb-8">
+                <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000" className="w-full h-full object-cover" alt="Warehouse" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-transparent flex items-center px-12">
+                    <h2 className="text-4xl font-black text-white tracking-tight uppercase">Category <span className="text-blue-400">Control</span></h2>
+                </div>
             </div>
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                {cats.map(c => (
-                    <div key={c._id} className="p-3 bg-slate-50 border rounded-lg flex justify-between items-center group hover:border-blue-400 transition">
-                        <span className="font-medium text-slate-600 italic"># {c.name}</span>
-                        <button onClick={() => del(c._id)} className="text-red-300 hover:text-red-600 transition"><Trash2 size={16}/></button>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Side: Form */}
+                <div className="bg-white p-8 shadow-xl rounded-2xl border-t-4 border-blue-600 h-fit">
+                    <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2">
+                        <Plus size={20} className="text-blue-600"/> Create New Category
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">Group your products by adding unique classification tags.</p>
+                    <div className="space-y-4">
+                        <input className="border-2 border-slate-100 p-3 w-full rounded-xl focus:border-blue-500 outline-none transition shadow-sm" 
+                               value={n} placeholder="e.g. Electronics, Home Decor" onChange={e => setN(e.target.value)} />
+                        <button onClick={add} className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition">
+                            Add Category
+                        </button>
                     </div>
-                ))}
+                </div>
+
+                {/* Right Side: List */}
+                <div className="lg:col-span-2 bg-white p-8 shadow-xl rounded-2xl">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-xl text-slate-800">Existing Categories</h3>
+                        <span className="bg-blue-100 text-blue-600 text-xs font-black px-3 py-1 rounded-full uppercase">{cats.length} Total</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2">
+                        {cats.map(c => (
+                            <div key={c._id} className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-center group hover:bg-white hover:border-blue-400 hover:shadow-md transition cursor-default">
+                                <span className="font-bold text-slate-700 tracking-tight"># {c.name}</span>
+                                <button onClick={() => del(c._id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                    <Trash2 size={18}/>
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
 };
+
+
 
 
 
@@ -455,65 +487,141 @@ const SupplierManager = ({ getConfig }) => {
     const del = async (id) => { if(window.confirm("Remove supplier?")) { await axios.delete(`${API_URL}/suppliers/${id}`, getConfig()); load(); } };
 
     return (
-        <div className="bg-white p-8 shadow rounded-xl max-w-2xl border-t-8 border-blue-800">
-            <h2 className="font-bold text-xl mb-6 text-blue-600 border-b pb-2 tracking-tighter">Supplier Directory</h2>
-            <div className="grid grid-cols-2 gap-4 mb-8 bg-slate-50 p-4 rounded-lg border">
-                <input className="border p-2 rounded" placeholder="Vendor Name" value={f.name} onChange={e => setF({...f, name: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Contact Details" value={f.contact} onChange={e => setF({...f, contact: e.target.value})} />
-                <button onClick={add} className="bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue col-span-2 shadow-md transition">Register New Supplier</button>
+        <div className="space-y-6">
+            <div className="bg-white p-8 shadow-xl rounded-2xl border-l-8 border-blue-600">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h2 className="font-black text-3xl text-blue-600 uppercase tracking-tighter">Supplier Directory</h2>
+                        <p className="text-slate-500">Manage your global vendor network and contacts.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <input className="border p-2 rounded-lg text-sm outline-none focus:ring-2 ring-blue-500/20" placeholder="Vendor Name" value={f.name} onChange={e => setF({...f, name: e.target.value})} />
+                        <input className="border p-2 rounded-lg text-sm outline-none focus:ring-2 ring-blue-500/20" placeholder="Email or Phone" value={f.contact} onChange={e => setF({...f, contact: e.target.value})} />
+                        <button onClick={add} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-600 transition shadow-lg">Register</button>
+                    </div>
+                </div>
             </div>
-            <table className="w-full text-left">
-                <thead className="border-b uppercase text-[10px] text-gray-400 font-black tracking-widest">
-                    <tr><th className="pb-2">Name</th><th className="pb-2">Contact Info</th><th className="pb-2 text-right">Action</th></tr>
-                </thead>
-                <tbody>{s.map(x => (
-                    <tr key={x._id} className="border-b hover:bg-slate-50 transition duration-150">
-                        <td className="py-3 font-bold text-slate-700">{x.name}</td>
-                        <td className="text-slate-500 font-medium">{x.contact}</td>
-                        <td className="text-right">
-                            <button onClick={() => del(x._id)} className="text-red-300 hover:text-red-600 transition hover:rotate-12"><Trash2 size={16}/></button>
-                        </td>
-                    </tr>
-                ))}</tbody>
-            </table>
+
+            <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-blue-600 text-white uppercase text-[11px] font-black tracking-widest">
+                        <tr>
+                            <th className="p-5">Supplier Name</th>
+                            <th className="p-5">Contact Details</th>
+                            <th className="p-5 text-center">Status</th>
+                            <th className="p-5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        {s.map(x => (
+                            <tr key={x._id} className="hover:bg-blue-50/50 transition">
+                                <td className="p-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">{x.name.charAt(0)}</div>
+                                        <span className="font-bold text-slate-700">{x.name}</span>
+                                    </div>
+                                </td>
+                                <td className="p-5 text-slate-500 font-medium text-sm">{x.contact}</td>
+                                <td className="p-5 text-center">
+                                    <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">Verified</span>
+                                </td>
+                                <td className="p-5 text-right">
+                                    <button onClick={() => del(x._id)} className="p-2 text-red-200 hover:text-red-600 hover:bg-red-50 rounded-full transition-all">
+                                        <Trash2 size={18}/>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {s.length === 0 && <div className="p-20 text-center text-slate-400 italic">No suppliers found in directory.</div>}
+            </div>
         </div>
     );
 };
 
 
 
-// Stock Movement
 
+
+// --- STOCK MOVEMENT ---
 const StockMovement = ({ getConfig }) => {
     const [p, setP] = useState([]);
     const [m, setM] = useState({ productId: '', quantity: 0, type: 'IN' });
     useEffect(() => { axios.get(`${API_URL}/products`, getConfig()).then(r => setP(r.data)); }, []);
+    
     const update = async () => { 
         if (!m.productId || m.quantity <= 0) return alert("Select product and valid quantity");
         await axios.post(`${API_URL}/stock-update`, m, getConfig()); 
         alert("Stock Recorded!"); window.location.reload(); 
     };
+
     return (
-        <div className="bg-white p-8 shadow-xl rounded-2xl max-w-md mx-auto border-t-8 border-blue-800">
-            <h2 className="font-bold text-2xl mb-6 text-center text-blue-600">Update Stock</h2>
-            <div className="space-y-4">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Select Item</label>
-                <select className="border p-3 w-full rounded-lg bg-slate-50 shadow-inner" onChange={e => setM({...m, productId: e.target.value})}>
-                    <option value="">-- Choose Target Product --</option>
-                    {p.map(x => <option key={x._id} value={x._id}>{x.name} (Current: {x.quantity})</option>)}
-                </select>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Action</label>
-                <div className="flex gap-2">
-                    <button onClick={() => setM({...m, type: 'IN'})} className={`flex-1 p-2 rounded font-bold transition ${m.type==='IN' ? 'bg-green-500 text-white shadow-md' : 'bg-gray-100 text-gray-400'}`}>Stock IN (+)</button>
-                    <button onClick={() => setM({...m, type: 'OUT'})} className={`flex-1 p-2 rounded font-bold transition ${m.type==='OUT' ? 'bg-red-500 text-white shadow-md' : 'bg-gray-100 text-gray-400'}`}>Stock OUT (-)</button>
+        <div className="flex flex-col lg:flex-row bg-white rounded-3xl overflow-hidden shadow-2xl min-h-[600px]">
+
+            {/* Functional Form Side */}
+            <div className="lg:w-1/2 p-12 flex items-center justify-center">
+                <div className="w-full max-w-md space-y-8">
+                    <div>
+                        <h3 className="text-4xl font-bold text-blue-600">Record Transaction</h3>
+                        <p className="text-slate-400 text-sm">Update the physical count of your items.</p>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Product</label>
+                            <select className="w-full border-2 border-slate-50 bg-slate-50 p-4 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 focus:bg-white transition" 
+                                    onChange={e => setM({...m, productId: e.target.value})}>
+                                <option value="">-- Search Inventory --</option>
+                                {p.map(x => <option key={x._id} value={x._id}>{x.name} (Current: {x.quantity})</option>)}
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Transaction Type</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button onClick={() => setM({...m, type: 'IN'})} 
+                                        className={`p-4 rounded-2xl flex flex-col items-center gap-1 transition-all ${m.type==='IN' ? 'bg-green-500 text-white shadow-lg ring-4 ring-green-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
+                                    <span className="font-black text-xl">+</span>
+                                    <span className="text-xs font-bold uppercase">Stock IN</span>
+                                </button>
+                                <button onClick={() => setM({...m, type: 'OUT'})} 
+                                        className={`p-4 rounded-2xl flex flex-col items-center gap-1 transition-all ${m.type==='OUT' ? 'bg-red-500 text-white shadow-lg ring-4 ring-red-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
+                                    <span className="font-black text-xl">-</span>
+                                    <span className="text-xs font-bold uppercase">Stock OUT</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Quantity</label>
+                            <input type="number" placeholder="0" className="w-full border-2 border-slate-50 bg-slate-50 p-4 rounded-2xl text-xl font-black text-slate-700 outline-none focus:border-blue-500 focus:bg-white transition" 
+                                   onChange={e => setM({...m, quantity: parseInt(e.target.value)})} />
+                        </div>
+
+                        <button onClick={update} className="w-full bg-blue-600 text-white p-5 rounded-2xl font-black text-lg shadow-2xl hover:bg-blue-600 transition-all duration-300 transform hover:-translate-y-1">
+                            COMPLETE TRANSACTION
+                        </button>
+                    </div>
                 </div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Quantity</label>
-                <input type="number" placeholder="Enter Amount" className="border p-3 w-full rounded-lg shadow-inner" onChange={e => setM({...m, quantity: parseInt(e.target.value)})} />
-                <button onClick={update} className="bg-blue-600 text-white w-full p-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue transition mt-4">RECORD TRANSACTION</button>
+            </div>
+
+            {/* Visual Branding Side */}
+            <div className="lg:w-1/2 relative bg-slate-900">
+                <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&q=80&w=1000" 
+                     className="absolute inset-0 w-full h-full object-cover opacity-40" alt="Logistics" />
+                <div className="relative h-full flex flex-col justify-center p-16 text-white">
+                    <span className="bg-blue-600 text-[10px] font-black uppercase tracking-[0.3em] px-3 py-1 rounded-full w-fit mb-4">Internal Logistics</span>
+                    <h2 className="text-5xl font-black mb-4">Stock <br/><span className="text-blue-400">Movement.</span></h2>
+                    <p className="text-slate-300 max-w-sm leading-relaxed">Ensure accurate inventory tracking by recording every stock addition or withdrawal from the warehouse.</p>
+                </div>
             </div>
         </div>
     );
 };
+
+
+
 
 
 // Reports page
