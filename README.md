@@ -1,57 +1,126 @@
 # 📦 E-Inventory Management System
 
-A professional, multi-tenant Inventory Management System built with the **MERN** stack (MongoDB, Express, React, Node.js). This application features a real-time dashboard, stock movement tracking, and automated audit logs.
+A professional, multi-tenant Inventory Management System built with the MERN stack (MongoDB, Express, React, Node.js). The application provides secure authentication, real-time dashboards, stock movement tracking, and automated audit logs.
 
 ---
 
 ## 🚀 Key Features
 
-- **Multi-Tenant Auth:** Secure Login/Register (one user cannot see another's data).
-- **Interactive Dashboard:** Data visualization with Bar and Pie charts.
-- **Low Stock Alerts:** Clickable notification system for items below threshold.
-- **Product Management:** Complete CRUD with SKU and Image support.
-- **Category & Supplier Tracking:** Keep your database organized.
-- **Audit Trail:** Logs every "Stock IN" and "Stock OUT" transaction.
-- **Report Export:** Download transaction logs as a CSV file.
+- Multi-tenant authentication using JWT (each user can access only their own data)
+- Interactive dashboard with bar and pie charts
+- Low stock alert system with clickable notifications
+- Product management with full CRUD operations, SKU, and image support
+- Category and supplier management
+- Audit trail for every Stock IN and Stock OUT transaction
+- CSV export for transaction and stock reports
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Frontend:** React.js, Tailwind CSS, Lucide-React (Icons), Recharts (Graphs), Axios.
-- **Backend:** Node.js, Express.js.
-- **Database:** MongoDB & Mongoose.
-- **Security:** JWT (JSON Web Tokens) & Bcrypt.js.
+Frontend: React.js, Tailwind CSS, Axios, Recharts, Lucide-React, React Router DOM  
+Backend: Node.js, Express.js  
+Database: MongoDB, Mongoose  
+Security: JWT (JSON Web Tokens), Bcrypt.js
 
 ---
 
-## ⚙️ Full Setup & Installation Commands
+## 📁 Project Structure
 
-### 1. Initialize Project & Backend Setup
-```cmd
-# Create the project folder
-#Create a backend folder
+E-Inventory-Management-System  
+├── backend  
+│   ├── models  
+│   ├── controllers  
+│   ├── routes  
+│   ├── middleware  
+│   ├── config  
+│   ├── server.js  
+│   └── .env  
+├── frontend  
+│   ├── src  
+│   │   ├── components  
+│   │   ├── pages  
+│   │   ├── services  
+│   │   ├── App.js  
+│   │   └── main.jsx  
+│   └── package.json  
+├── .gitignore  
+└── README.md
 
-# Initialize Node.js
-npm init -y
+---
 
-# Install Backend Libraries
-npm install express mongoose cors bcryptjs jsonwebtoken dotenv
+## ⚙️ Installation & Setup
 
-# Install Development Tool (Optional)
+Step 1: Clone the repository
+
+git clone https://github.com/your-username/E-Inventory-Management-System.git  
+cd E-Inventory-Management-System
+
+Step 2: Backend setup
+
+cd backend  
+npm init -y  
+npm install express mongoose cors bcryptjs jsonwebtoken dotenv  
 npm install --save-dev nodemon
 
+Step 3: Create environment file (backend/.env)
 
-### 2. Initialize Project & Frontend Setup
-```cmd
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/inventoryDB  
+JWT_SECRET=inventory_jwt_secure_key_2026  
+PORT=5000
 
-# Install React and Routing
-npm install react react-dom react-router-dom react-scripts
+Step 4: Start backend server
 
-# Install UI & Data Libraries
-npm install axios lucide-react recharts
+npm run dev
 
+Step 5: Frontend setup
 
-.env config
-MONGO_URI=mongodb: your connection string
-JWT_SECRET= random key
+cd ..  
+npx create-react-app frontend  
+cd frontend  
+npm install react-router-dom axios lucide-react recharts  
+npm start
+
+---
+
+## 🔐 Authentication Flow
+
+User registers → password is hashed using bcrypt  
+User logs in → JWT token is generated  
+JWT token is stored on the client  
+Token is sent in request headers  
+Backend verifies token before serving protected routes
+
+---
+
+## 📊 Dashboard Overview
+
+- Total products count
+- Low stock items
+- Stock IN and Stock OUT history
+- Category-wise analytics
+- Supplier-based reports
+
+---
+
+## 📄 CSV Export
+
+Users can export transaction logs and inventory reports as CSV files directly from the dashboard.
+
+---
+
+## 🚧 Future Enhancements
+
+- Role-based access control (Admin / Staff)
+- Email notifications for low stock
+- Barcode and QR code scanning
+- Dark mode support
+- Cloud-based image storage integration
+
+---
+
+## 🧑‍💻 Author
+
+Suresh S U  
+AI & Data Science Student  
+Full Stack Developer  
