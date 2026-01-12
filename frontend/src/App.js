@@ -11,24 +11,77 @@ const App = () => {
     const getConfig = () => ({ headers: { Authorization: user?.token } });
     const logout = () => { localStorage.removeItem('user'); setUser(null); };
 
+    // Standardized Link Style
+    const navLinkClass = "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/10 group text-sm";
+
     return (
         <Router>
-            <div className="flex min-h-screen bg-gray-100">
+            <div className="flex min-h-screen bg-gray-100"> {/* Restored original background */}
                 {user && (
-                    <nav className="w-64 bg-blue-900 text-white p-6 flex flex-col space-y-4 font-sans shadow-xl">
-                        <h1 className="text-xl font-bold text-blue-400 mb-6 uppercase tracking-widest border-b border-gray-700 pb-2">E-Inventory</h1>
-                        <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/"><LayoutDashboard size={18}/> Dashboard</Link>
-                        <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/products"><Box size={18}/> Products</Link>
-                        <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/categories"><Tags size={18}/> Categories</Link>
-                        <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/suppliers"><Truck size={18}/> Suppliers</Link>
-                        <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/stock"><ArrowUpDown size={18}/> Stock Movement</Link>
-                        <Link className="flex gap-2 items-center hover:text-blue-300 transition" to="/reports"><FileText size={18}/> Audit Logs</Link>
-                        <div className="mt-auto border-t border-gray-700 pt-4">
-                            <p className="text-xs text-gray-400 mb-2 font-bold italic">User: {user.username}</p>
-                            <button onClick={logout} className="flex gap-2 items-center text-red-400 hover:text-red-300 transition w-full p-2 rounded hover:bg-red-900/10"><LogOut size={18}/> Logout</button>
+                    <nav className="w-64 bg-slate-900 text-slate-300 p-4 flex flex-col shadow-xl"> {/* Restored original width */}
+                        {/* Attractive Logo Section */}
+                        <div className="flex items-center gap-3 px-2 py-4 mb-6">
+                            <div className="bg-blue-600 p-1.5 rounded-lg">
+                                <Box className="text-white" size={20}/>
+                            </div>
+                            <h1 className="text-lg font-bold text-white tracking-tight">
+                                E-<span className="text-blue-400">INVENTORY</span>
+                            </h1>
+                        </div>
+
+                        {/* Navigation Links */}
+                        <div className="flex flex-col space-y-1 flex-1">
+                            <Link className={navLinkClass} to="/">
+                                <LayoutDashboard size={18} className="group-hover:text-blue-400"/> 
+                                <span>Dashboard</span>
+                            </Link>
+                            <Link className={navLinkClass} to="/products">
+                                <Box size={18} className="group-hover:text-blue-400"/> 
+                                <span>Products</span>
+                            </Link>
+                            <Link className={navLinkClass} to="/categories">
+                                <Tags size={18} className="group-hover:text-blue-400"/> 
+                                <span>Categories</span>
+                            </Link>
+                            <Link className={navLinkClass} to="/suppliers">
+                                <Truck size={18} className="group-hover:text-blue-400"/> 
+                                <span>Suppliers</span>
+                            </Link>
+                            
+                            <div className="pt-4 mt-4 border-t border-white/10">
+                                <Link className={navLinkClass} to="/stock">
+                                    <ArrowUpDown size={18} className="group-hover:text-blue-400"/> 
+                                    <span>Stock Movement</span>
+                                </Link>
+                                <Link className={navLinkClass} to="/reports">
+                                    <FileText size={18} className="group-hover:text-blue-400"/> 
+                                    <span>Audit Logs</span>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Attractive User Section */}
+                        <div className="mt-auto pt-4 border-t border-white/10">
+                            <div className="flex items-center gap-3 mb-4 px-2">
+                                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs">
+                                    {user.username.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-xs font-bold text-white truncate">{user.username}</p>
+                                    <p className="text-[10px] text-slate-500 uppercase">Admin</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={logout} 
+                                className="flex items-center gap-2 w-full px-3 py-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors text-sm font-medium"
+                            >
+                                <LogOut size={16}/> Logout
+                            </button>
                         </div>
                     </nav>
                 )}
+
+                {/* Main content - Restored original padding and overflow */}
                 <main className="flex-1 p-8 overflow-y-auto h-screen">
                     <Routes>
                         <Route path="/login" element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />} />
@@ -45,6 +98,59 @@ const App = () => {
         </Router>
     );
 };
+
+
+
+
+// --- REMAINING AUTH & FUNCTIONAL COMPONENTS ---
+
+const Login = ({ setUser }) => {
+    const [f, setF] = useState({ username: '', password: '' });
+    const log = async (e) => {
+        e.preventDefault();
+        try { 
+            const res = await axios.post(`${API_URL}/login`, f); 
+            localStorage.setItem('user', JSON.stringify(res.data)); 
+            setUser(res.data); 
+        } catch { alert("Invalid login credentials"); }
+    };
+    return (
+        <div className="max-w-md mx-auto mt-20 p-8 bg-white shadow-xl rounded-lg text-center border-t-8 border-blue-600">
+            <h2 className="text-2xl font-black mb-6 uppercase tracking-widest text-slate-800 italic">Login</h2>
+            <form onSubmit={log} className="flex flex-col gap-4 text-left">
+                <input className="border p-3 rounded shadow-inner focus:outline-blue-500" placeholder="Username" onChange={e => setF({...f, username: e.target.value})} required />
+                <input className="border p-3 rounded shadow-inner focus:outline-blue-500" type="password" placeholder="Password" onChange={e => setF({...f, password: e.target.value})} required />
+                <button className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg uppercase tracking-tighter">Sign In</button>
+                <Link to="/register" className="text-center text-blue-600 font-semibold hover:underline text-sm">Create New Admin Account</Link>
+            </form>
+        </div>
+    );
+};
+
+
+
+
+// Login and Registration page 
+const Register = () => {
+    const [f, setF] = useState({ username: '', password: '' });
+    const reg = async (e) => {
+        e.preventDefault();
+        try { await axios.post(`${API_URL}/register`, f); alert("Created! Now Login."); window.location.href = '/login'; }
+        catch { alert("Username unavailable"); }
+    };
+    return (
+        <div className="max-w-md mx-auto mt-20 p-8 bg-white shadow-xl rounded-lg border-t-8 border-green-500 text-center">
+            <h2 className="text-2xl font-black mb-6 uppercase tracking-widest text-slate-800 italic">Register</h2>
+            <form onSubmit={reg} className="flex flex-col gap-4 text-left">
+                <input className="border p-3 rounded focus:outline-green-500" placeholder="Username" onChange={e => setF({...f, username: e.target.value})} required />
+                <input className="border p-3 rounded focus:outline-green-500" type="password" placeholder="Password" onChange={e => setF({...f, password: e.target.value})} required />
+                <button className="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg uppercase tracking-tighter">Start Now</button>
+                <Link to="/login" className="text-center text-gray-500 font-semibold hover:underline text-sm">Back to Login</Link>
+            </form>
+        </div>
+    );
+};
+
 
 
 
@@ -257,35 +363,55 @@ const ProductManager = ({ getConfig }) => {
                 <button className="bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700 transition md:col-span-4 shadow">Add Product</button>
             </form>
 
-            <div className="bg-white shadow rounded-xl overflow-hidden">
-                <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-                    <span className="font-bold text-slate-800 text-[25  px]">Inventory List</span>
-                    <input className="border border-blue-400 p-2 rounded text-mm w-48 shadow-inner 
-             focus:outline-none focus:border-blue-1000 focus:bg-gray-400" placeholder="Search product..." onChange={e => setSearchTerm(e.target.value)} />
+            <div className="space-y-4">
+                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow border-b">
+                    <span className="font-bold text-blue-600 text-xl">Inventory List</span>
+                    <input className="border border-blue-400 p-2 rounded w-48 shadow-inner focus:outline-none focus:border-blue-600 text-sm" placeholder="Search..." onChange={e => setSearchTerm(e.target.value)} />
                 </div>
-                <table className="w-full text-left">
-                    <thead className="bg-slate-800 text-white text-[10px] uppercase font-black">
-                        <tr><th className="p-4 text-center">Img</th><th className="p-4">Name</th><th className="p-4">SKU</th><th className="p-4">Stock</th><th className="p-4 text-center">Delete</th></tr>
-                    </thead>
-                    <tbody>{filteredProducts.map(x => (
-                        <tr key={x._id} className="border-b hover:bg-gray-50 transition">
-                            <td className="p-4 flex justify-center">
-                                {x.image ? <img src={x.image} alt="p" className="w-10 h-10 rounded object-cover border-2 border-white shadow-sm" referrerPolicy="no-referrer" onError={e => e.target.src='https://via.placeholder.com/40'}/> : <ImageIcon className="text-gray-200" size={20}/>}
-                            </td>
-                            <td className="p-4 font-bold text-slate-700">{x.name}</td>
-                            <td className="p-4 font-mono text-xs text-slate-400 italic">{x.sku}</td>
-                            <td className={`p-4 font-black ${x.quantity < 5 ? 'text-red-500 underline underline-offset-4 decoration-dotted' : 'text-green-600'}`}>{x.quantity}</td>
-                            <td className="p-4 text-center">
-                                <button onClick={() => deleteProd(x._id)} className="text-red-400 hover:text-red-600 hover:scale-110 transition duration-200"><Trash2 size={18}/></button>
-                            </td>
-                        </tr>
-                    ))}</tbody>
-                </table>
+
+                {/* Smaller Card Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {filteredProducts.map(x => (
+                        <div key={x._id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition relative border border-slate-200 group flex flex-col">
+                            {/* Full Image Container */}
+                            <div className="aspect-square bg-slate-100 relative overflow-hidden">
+                                {x.image ? (
+                                    <img 
+                                        src={x.image} 
+                                        alt={x.name} 
+                                        className="w-full h-full object-cover transition duration-300 group-hover:scale-110" 
+                                        referrerPolicy="no-referrer" 
+                                        onError={e => e.target.src='https://via.placeholder.com/150'}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full"><ImageIcon className="text-slate-300" size={24}/></div>
+                                )}
+                                <button 
+                                    onClick={() => deleteProd(x._id)} 
+                                    className="absolute top-1 right-1 bg-white/80 p-1.5 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition shadow opacity-0 group-hover:opacity-100"
+                                >
+                                    <Trash2 size={14}/>
+                                </button>
+                            </div>
+                            
+                            {/* Smaller Card Content */}
+                            <div className="p-2 flex flex-col flex-grow">
+                                <h3 className="font-bold text-slate-700 text-xs truncate" title={x.name}>{x.name}</h3>
+                                <p className="text-[9px] font-mono text-slate-400 truncate">{x.sku}</p>
+                                <div className="mt-auto pt-2 flex justify-between items-center">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Qty</span>
+                                    <span className={`text-xs font-black ${x.quantity < 5 ? 'text-red-500' : 'text-green-600'}`}>
+                                        {x.quantity}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
 };
-
 
 
 
@@ -350,53 +476,6 @@ const SupplierManager = ({ getConfig }) => {
                     </tr>
                 ))}</tbody>
             </table>
-        </div>
-    );
-};
-
-// --- REMAINING AUTH & FUNCTIONAL COMPONENTS ---
-
-const Login = ({ setUser }) => {
-    const [f, setF] = useState({ username: '', password: '' });
-    const log = async (e) => {
-        e.preventDefault();
-        try { 
-            const res = await axios.post(`${API_URL}/login`, f); 
-            localStorage.setItem('user', JSON.stringify(res.data)); 
-            setUser(res.data); 
-        } catch { alert("Invalid login credentials"); }
-    };
-    return (
-        <div className="max-w-md mx-auto mt-20 p-8 bg-white shadow-xl rounded-lg text-center border-t-8 border-blue-600">
-            <h2 className="text-2xl font-black mb-6 uppercase tracking-widest text-slate-800 italic">Login</h2>
-            <form onSubmit={log} className="flex flex-col gap-4 text-left">
-                <input className="border p-3 rounded shadow-inner focus:outline-blue-500" placeholder="Username" onChange={e => setF({...f, username: e.target.value})} required />
-                <input className="border p-3 rounded shadow-inner focus:outline-blue-500" type="password" placeholder="Password" onChange={e => setF({...f, password: e.target.value})} required />
-                <button className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg uppercase tracking-tighter">Sign In</button>
-                <Link to="/register" className="text-center text-blue-600 font-semibold hover:underline text-sm">Create New Admin Account</Link>
-            </form>
-        </div>
-    );
-};
-
-
-
-const Register = () => {
-    const [f, setF] = useState({ username: '', password: '' });
-    const reg = async (e) => {
-        e.preventDefault();
-        try { await axios.post(`${API_URL}/register`, f); alert("Created! Now Login."); window.location.href = '/login'; }
-        catch { alert("Username unavailable"); }
-    };
-    return (
-        <div className="max-w-md mx-auto mt-20 p-8 bg-white shadow-xl rounded-lg border-t-8 border-green-500 text-center">
-            <h2 className="text-2xl font-black mb-6 uppercase tracking-widest text-slate-800 italic">Register</h2>
-            <form onSubmit={reg} className="flex flex-col gap-4 text-left">
-                <input className="border p-3 rounded focus:outline-green-500" placeholder="Username" onChange={e => setF({...f, username: e.target.value})} required />
-                <input className="border p-3 rounded focus:outline-green-500" type="password" placeholder="Password" onChange={e => setF({...f, password: e.target.value})} required />
-                <button className="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg uppercase tracking-tighter">Start Now</button>
-                <Link to="/login" className="text-center text-gray-500 font-semibold hover:underline text-sm">Back to Login</Link>
-            </form>
         </div>
     );
 };
