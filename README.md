@@ -51,33 +51,27 @@ E-Inventory-Management-System
 
 ## ⚙️ Installation & Setup
 
-Step 1: Clone the repository
 
-git clone https://github.com/your-username/E-Inventory-Management-System.git  
-cd E-Inventory-Management-System
+# Step 1: Backend setup
 
-Step 2: Backend setup
-
-cd backend  
 npm init -y  
 npm install express mongoose cors bcryptjs jsonwebtoken dotenv  
-npm install --save-dev nodemon
+npm i nodemon
 
-Step 3: Create environment file (backend/.env)
+# Step 2: Create environment file (backend/.env)
 
 MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/inventoryDB  
 JWT_SECRET=inventory_jwt_secure_key_2026  
 PORT=5000
 
-Step 4: Start backend server
+Start backend server
 
-npm run dev
+nodemon server.js
 
-Step 5: Frontend setup
+# Step 3: Frontend setup
 
-cd ..  
 npx create-react-app frontend  
-cd frontend  
+ 
 npm install react-router-dom axios lucide-react recharts  
 npm start
 
