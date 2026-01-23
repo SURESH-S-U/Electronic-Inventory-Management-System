@@ -45,3 +45,7 @@ coverage/
 # Express temp files
 # ----------------------
 tmp/
+
+
+# Ignore Details.txt
+Details.txt
