@@ -70,7 +70,7 @@ nodemon server.js
 
 # Step 3: Frontend setup
 
-npx create-react-app frontend  
+npx create-react-app@latest frontend  
  
 npm install react-router-dom axios lucide-react recharts  
 npm start
