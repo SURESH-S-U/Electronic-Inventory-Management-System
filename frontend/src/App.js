@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Box, ArrowUpDown, FileText, LogOut, Tags, Truck, Image as ImageIcon, Plus, AlertTriangle, Activity, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Box, ArrowUpDown, FileText, LogOut, Tags, Truck, Image as ImageIcon, Plus, AlertTriangle, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const API_URL = 'http://localhost:5000/api';
 
 const App = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
-    const getConfig = () => ({ headers: { Authorization: user?.token } });
+    
+    // Wrapped in useCallback to prevent unnecessary re-renders in child effects
+    const getConfig = useCallback(() => ({ 
+        headers: { Authorization: user?.token } 
+    }), [user?.token]);
+
     const logout = () => { localStorage.removeItem('user'); setUser(null); };
 
     // Standardized Link Style
@@ -16,10 +21,9 @@ const App = () => {
 
     return (
         <Router>
-            <div className="flex min-h-screen bg-gray-100"> {/* Restored original background */}
+            <div className="flex min-h-screen bg-gray-100">
                 {user && (
-                    <nav className="w-64 bg-slate-900 text-slate-300 p-4 flex flex-col shadow-xl"> {/* Restored original width */}
-                        {/* Attractive Logo Section */}
+                    <nav className="w-64 bg-slate-900 text-slate-300 p-4 flex flex-col shadow-xl">
                         <div className="flex items-center gap-3 px-2 py-4 mb-6">
                             <div className="bg-blue-600 p-1.5 rounded-lg">
                                 <Box className="text-white" size={20}/>
@@ -29,7 +33,6 @@ const App = () => {
                             </h1>
                         </div>
 
-                        {/* Navigation Links */}
                         <div className="flex flex-col space-y-1 flex-1">
                             <Link className={navLinkClass} to="/">
                                 <LayoutDashboard size={18} className="group-hover:text-blue-400"/> 
@@ -60,7 +63,6 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Attractive User Section */}
                         <div className="mt-auto pt-4 border-t border-white/10">
                             <div className="flex items-center gap-3 mb-4 px-2">
                                 <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs">
@@ -81,7 +83,6 @@ const App = () => {
                     </nav>
                 )}
 
-                {/* Main content - Restored original padding and overflow */}
                 <main className="flex-1 p-8 overflow-y-auto h-screen">
                     <Routes>
                         <Route path="/login" element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />} />
@@ -99,10 +100,7 @@ const App = () => {
     );
 };
 
-
-
-
-// --- REMAINING AUTH & FUNCTIONAL COMPONENTS ---
+// --- AUTH COMPONENTS ---
 
 const Login = ({ setUser }) => {
     const [f, setF] = useState({ username: '', password: '' });
@@ -127,10 +125,6 @@ const Login = ({ setUser }) => {
     );
 };
 
-
-
-
-// Login and Registration page 
 const Register = () => {
     const [f, setF] = useState({ username: '', password: '' });
     const reg = async (e) => {
@@ -151,15 +145,11 @@ const Register = () => {
     );
 };
 
-
-
-
-
-// --- ENHANCED DASHBOARD WITH CLICKABLE LOW STOCK ---
+// --- DASHBOARD ---
 
 const Dashboard = ({ getConfig }) => {
     const [data, setData] = useState({ p: [], c: [], s: [], t: [] });
-    const [showLowStockModal, setShowLowStockModal] = useState(false); // State to control Modal
+    const [showLowStockModal, setShowLowStockModal] = useState(false);
 
     useEffect(() => { 
         const fetchAll = async () => {
@@ -172,7 +162,7 @@ const Dashboard = ({ getConfig }) => {
             } catch (err) { console.error("Dashboard fetch error", err); }
         };
         fetchAll();
-    }, []);
+    }, [getConfig]);
 
     const lowStockItems = data.p.filter(x => x.quantity < 5);
     const lowStockCount = lowStockItems.length;
@@ -200,7 +190,6 @@ const Dashboard = ({ getConfig }) => {
                     <p className="text-3xl font-black">{data.p.length}</p>
                 </div>
 
-                {/* CLICKABLE LOW STOCK CARD */}
                 <div 
                     onClick={() => setShowLowStockModal(true)}
                     className="bg-white p-6 shadow-md rounded-xl border-l-4 border-red-500 hover:scale-105 transition cursor-pointer group"
@@ -223,7 +212,6 @@ const Dashboard = ({ getConfig }) => {
                 </div>
             </div>
 
-            {/* CHARTS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 shadow-md rounded-xl h-80">
                     <h3 className="font-bold mb-4 text-slate-700 italic border-b pb-2">📦 Current Category Levels</h3>
@@ -251,7 +239,6 @@ const Dashboard = ({ getConfig }) => {
                 </div>
             </div>
 
-            {/* --- LOW STOCK MODAL POPUP --- */}
             {showLowStockModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -302,9 +289,8 @@ const Dashboard = ({ getConfig }) => {
     );
 };
 
-
-
 // --- PRODUCT MANAGER ---
+
 const ProductManager = ({ getConfig }) => {
     const [p, setP] = useState([]);
     const [cats, setCats] = useState([]);
@@ -312,16 +298,16 @@ const ProductManager = ({ getConfig }) => {
     const [f, setF] = useState({ name: '', category: '', price: 0, sku: '', quantity: 0, image: '', supplier: '' });
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => { loadAll(); }, []);
-
-    const loadAll = async () => {
+    const loadAll = useCallback(async () => {
         try {
             const resP = await axios.get(`${API_URL}/products`, getConfig()); 
             const resC = await axios.get(`${API_URL}/categories`, getConfig());
             const resS = await axios.get(`${API_URL}/suppliers`, getConfig());
             setP(resP.data); setCats(resC.data); setSups(resS.data);
         } catch (err) { console.error("Load all products error", err); }
-    };
+    }, [getConfig]);
+
+    useEffect(() => { loadAll(); }, [loadAll]);
 
     const save = async (e) => {
         e.preventDefault();
@@ -369,11 +355,9 @@ const ProductManager = ({ getConfig }) => {
                     <input className="border border-blue-400 p-2 rounded w-48 shadow-inner focus:outline-none focus:border-blue-600 text-sm" placeholder="Search..." onChange={e => setSearchTerm(e.target.value)} />
                 </div>
 
-                {/* Smaller Card Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                     {filteredProducts.map(x => (
                         <div key={x._id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition relative border border-slate-200 group flex flex-col">
-                            {/* Full Image Container */}
                             <div className="aspect-square bg-slate-100 relative overflow-hidden">
                                 {x.image ? (
                                     <img 
@@ -393,8 +377,6 @@ const ProductManager = ({ getConfig }) => {
                                     <Trash2 size={14}/>
                                 </button>
                             </div>
-                            
-                            {/* Smaller Card Content */}
                             <div className="p-2 flex flex-col flex-grow">
                                 <h3 className="font-bold text-slate-700 text-xs truncate" title={x.name}>{x.name}</h3>
                                 <p className="text-[9px] font-mono text-slate-400 truncate">{x.sku}</p>
@@ -413,16 +395,19 @@ const ProductManager = ({ getConfig }) => {
     );
 };
 
-
-
-
-
 // --- CATEGORY MANAGER ---
+
 const CategoryManager = ({ getConfig }) => {
     const [cats, setCats] = useState([]);
     const [n, setN] = useState('');
-    useEffect(() => { load(); }, []);
-    const load = async () => { const r = await axios.get(`${API_URL}/categories`, getConfig()); setCats(r.data); };
+
+    const load = useCallback(async () => { 
+        const r = await axios.get(`${API_URL}/categories`, getConfig()); 
+        setCats(r.data); 
+    }, [getConfig]);
+
+    useEffect(() => { load(); }, [load]);
+
     const add = async () => { if(!n) return; await axios.post(`${API_URL}/categories`, { name: n }, getConfig()); setN(''); load(); };
     const del = async (id) => { if(window.confirm("Delete category?")) { await axios.delete(`${API_URL}/categories/${id}`, getConfig()); load(); } };
 
@@ -436,7 +421,6 @@ const CategoryManager = ({ getConfig }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Side: Form */}
                 <div className="bg-white p-8 shadow-xl rounded-2xl border-t-4 border-blue-600 h-fit">
                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2">
                         <Plus size={20} className="text-blue-600"/> Create New Category
@@ -451,7 +435,6 @@ const CategoryManager = ({ getConfig }) => {
                     </div>
                 </div>
 
-                {/* Right Side: List */}
                 <div className="lg:col-span-2 bg-white p-8 shadow-xl rounded-2xl">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="font-bold text-xl text-slate-800">Existing Categories</h3>
@@ -473,16 +456,19 @@ const CategoryManager = ({ getConfig }) => {
     );
 };
 
-
-
-
-
 // --- SUPPLIER MANAGER ---
+
 const SupplierManager = ({ getConfig }) => {
     const [s, setS] = useState([]);
     const [f, setF] = useState({ name: '', contact: '' });
-    useEffect(() => { load(); }, []);
-    const load = async () => { const r = await axios.get(`${API_URL}/suppliers`, getConfig()); setS(r.data); };
+
+    const load = useCallback(async () => { 
+        const r = await axios.get(`${API_URL}/suppliers`, getConfig()); 
+        setS(r.data); 
+    }, [getConfig]);
+
+    useEffect(() => { load(); }, [load]);
+
     const add = async () => { if(!f.name) return; await axios.post(`${API_URL}/suppliers`, f, getConfig()); setF({name:'', contact:''}); load(); };
     const del = async (id) => { if(window.confirm("Remove supplier?")) { await axios.delete(`${API_URL}/suppliers/${id}`, getConfig()); load(); } };
 
@@ -540,15 +526,15 @@ const SupplierManager = ({ getConfig }) => {
     );
 };
 
-
-
-
-
 // --- STOCK MOVEMENT ---
+
 const StockMovement = ({ getConfig }) => {
     const [p, setP] = useState([]);
     const [m, setM] = useState({ productId: '', quantity: 0, type: 'IN' });
-    useEffect(() => { axios.get(`${API_URL}/products`, getConfig()).then(r => setP(r.data)); }, []);
+
+    useEffect(() => { 
+        axios.get(`${API_URL}/products`, getConfig()).then(r => setP(r.data)); 
+    }, [getConfig]);
     
     const update = async () => { 
         if (!m.productId || m.quantity <= 0) return alert("Select product and valid quantity");
@@ -558,8 +544,6 @@ const StockMovement = ({ getConfig }) => {
 
     return (
         <div className="flex flex-col lg:flex-row bg-white rounded-3xl overflow-hidden shadow-2xl min-h-[600px]">
-
-            {/* Functional Form Side */}
             <div className="lg:w-1/2 p-12 flex items-center justify-center">
                 <div className="w-full max-w-md space-y-8">
                     <div>
@@ -606,7 +590,6 @@ const StockMovement = ({ getConfig }) => {
                 </div>
             </div>
 
-            {/* Visual Branding Side */}
             <div className="lg:w-1/2 relative bg-slate-900">
                 <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&q=80&w=1000" 
                      className="absolute inset-0 w-full h-full object-cover opacity-40" alt="Logistics" />
@@ -620,15 +603,14 @@ const StockMovement = ({ getConfig }) => {
     );
 };
 
-
-
-
-
-// Reports page
+// --- REPORTS ---
 
 const Reports = ({ getConfig }) => {
     const [l, setL] = useState([]);
-    useEffect(() => { axios.get(`${API_URL}/transactions`, getConfig()).then(r => setL(r.data)); }, []);
+
+    useEffect(() => { 
+        axios.get(`${API_URL}/transactions`, getConfig()).then(r => setL(r.data)); 
+    }, [getConfig]);
 
     const downloadCSV = () => {
       const headers = "Date,Item,Type,Quantity,User\n";

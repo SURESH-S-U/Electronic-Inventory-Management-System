@@ -113,6 +113,17 @@ Users can export transaction logs and inventory reports as CSV files directly fr
 
 ---
 
+
+
+## Backend Live 
+Available at your primary URL https://electronic-inventory-management-system.onrender.com
+
+
+## Frontend Live
+
+
+
+
 ## 🧑‍💻 Author
 
 Suresh S U  
