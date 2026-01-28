@@ -120,7 +120,7 @@ Available at your primary URL https://electronic-inventory-management-system.onr
 
 
 ## Frontend Live
-
+https://e-inventoryapp.netlify.app/
 
 
 
