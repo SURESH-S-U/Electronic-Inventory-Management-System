@@ -4,7 +4,7 @@ import axios from 'axios';
 import { LayoutDashboard, Box, ArrowUpDown, FileText, LogOut, Tags, Truck, Image as ImageIcon, Plus, AlertTriangle, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const App = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
