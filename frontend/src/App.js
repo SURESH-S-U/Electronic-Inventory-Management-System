@@ -4,7 +4,10 @@ import axios from 'axios';
 import { LayoutDashboard, Box, ArrowUpDown, FileText, LogOut, Tags, Truck, Image as ImageIcon, Plus, AlertTriangle, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
+// This tells the app: Use the Render URL if available, otherwise use localhost
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+
 
 const App = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
